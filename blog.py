@@ -7,6 +7,7 @@ from werkzeug.exceptions import abort
 from auth import login_required
 from db import get_db
 
+
 bp = Blueprint('blog', __name__)
 
 
@@ -17,7 +18,7 @@ def get_recent_posts(limit: int):
     :return: A list object with all blog posts data.
     """
     db = get_db()
-    all_posts = db.collection('posts').limit(limit).get()
+    all_posts = db.collection('posts').limit(limit).stream()
     return all_posts
 
 

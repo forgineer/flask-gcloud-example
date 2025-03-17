@@ -1,10 +1,16 @@
+import firebase_admin
 import os
 
+from firebase_admin import credentials
 from flask import Flask
 from google.cloud import secretmanager
 
 
 def create_app(test_config=None):
+    # Initialize the Firebase admin
+    cred = credentials.ApplicationDefault()
+    firebase_admin.initialize_app(cred)
+
     # Create and configure the app
     app = Flask(__name__)
 
@@ -48,6 +54,8 @@ def create_app(test_config=None):
 
     import blog
     app.register_blueprint(blog.bp)
+
+    # Set default endpoint (index)
     app.add_url_rule('/', endpoint='index')
 
     return app

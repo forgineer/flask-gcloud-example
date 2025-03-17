@@ -30,14 +30,13 @@
         signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
             const user = userCredential.user;
-            console.log(user);
             console.log(user.getIdToken());
             user.getIdToken().then(function(idToken) {
                 // Send the ID token to your Flask backend
                 fetch('/login', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer ' + idToken,
+                        'Authorization': idToken,
                         'Content-Type': 'application/json'
                     }
                 })

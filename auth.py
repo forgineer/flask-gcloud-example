@@ -1,8 +1,16 @@
 import functools
 
+from google.cloud.firestore_v1.stream_generator import StreamGenerator
+
 from db import get_db
+from firebase_admin import (
+    auth, exceptions
+)
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
+)
+from google.cloud.firestore import (
+    CollectionReference, DocumentSnapshot, FieldFilter
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -36,27 +44,65 @@ def login_required(view):
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        email: str = request.form['email']
+        username: str = request.form['username']
+        password: str = request.form['password']
         db = get_db()
-        error = None
+        error: str | None = None
 
-        if not username:
+        # Validate Form Input
+        if not email:
+            error = 'Email is required.'
+        elif not username:
             error = 'Username is required.'
         elif not password:
             error = 'Password is required.'
 
+        # Verify if the user (email) already exists
+        user: auth.UserRecord | None = None
+
         if error is None:
             try:
-                db.execute(
-                    "INSERT INTO user (username, password) VALUES (?, ?)",
-                    (username, generate_password_hash(password)),
+                # Is the user registered?
+                user = auth.get_user_by_email(email)
+                error = f"Email {email} is already registered."
+            except auth.UserNotFoundError:
+                pass
+            except Exception as e:
+                error = e
+
+        # Verify if the username is already being used
+        if error is None:
+            # Query the Firestore for a user with the username
+            users_ref: CollectionReference = db.collection('users')
+            records: StreamGenerator[DocumentSnapshot] = users_ref.where(filter=FieldFilter("username", "==", username)).limit(1).stream()
+
+            for record in records:
+                user_record: dict = record.to_dict()
+                record_username: str | None = user_record.get('username', None)
+
+                if record_username == username:
+                    error = f'User {username} is already registered.'
+
+        # Register the new user and create a record
+        if error is None:
+            try:
+                new_user: auth.UserRecord = auth.create_user(
+                    email=email,
+                    password=password,
+                    display_name=username
                 )
-                db.commit()
-            except db.IntegrityError:
-                error = f"User {username} is already registered."
-            else:
+
+                new_user_record = {
+                    'username': username
+                    , 'email': email
+                }
+
+                db.collection('users').document().set(new_user_record)
+
                 return redirect(url_for("blog.posts"))
+            except Exception as e:
+                error = e
 
         flash(error)
 
