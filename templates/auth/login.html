@@ -1,0 +1,24 @@
+<header>
+  <h1>Log In</h1>
+</header>
+{% for message in get_flashed_messages() %}
+<div class="flash">{{ message }}</div>
+{% endfor %}
+<form id="loginForm">
+  <label for="email">Email</label>
+  <input name="email" id="email" required>
+  <label for="password">Password</label>
+  <input type="password" name="password" id="password" required>
+  <input type="submit" value="Log In">
+  <!--input type="submit"
+         value="Log In"
+         hx-post="{{ url_for('auth.login') }} "
+         hx-trigger="click"
+         hx-target=".content"
+         hx-swap="innerHTML"-->
+
+</form>
+{% include 'firebase_authentication.js' %}
+
+{# Out of Band (OOB) Swap for page title #}
+<title class="blog_title" hx-swap-oob="outerHTML:.blog_title">Log In - HTMX Blog</title>
