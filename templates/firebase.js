@@ -35,7 +35,7 @@
 
     window.sendAuth = function() {
         window.authenticate().then((idToken)=> {
-            htmx.ajax('POST', '/auth/login', {
+            htmx.ajax('POST', '{{ url_for("auth.login")}}', {
                 values: { idToken: idToken },
                 target: '.content', // Specify the target element
                 swap: 'innerHTML'   // Specify the swap strategy
