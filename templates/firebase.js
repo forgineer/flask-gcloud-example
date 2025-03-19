@@ -44,20 +44,4 @@
             alert(error.message); // display error to user.
         });
     }
-    /*
-    // Authenticate User
-    export function authenticate() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-
-        return signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                const user = userCredential.user;
-                console.log(user.getIdToken());
-                return user.getIdToken();
-            });
-    };
-
-    window.authenticate = authenticate;
-    */
 </script>
