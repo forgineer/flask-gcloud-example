@@ -1,18 +1,16 @@
 import functools
 
-from google.cloud.firestore_v1.stream_generator import StreamGenerator
-
 from db import get_db
 from firebase_admin import (
     auth, exceptions
 )
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, Response
 )
 from google.cloud.firestore import (
     CollectionReference, DocumentSnapshot, FieldFilter
 )
-from werkzeug.security import check_password_hash, generate_password_hash
+from google.cloud.firestore_v1.stream_generator import StreamGenerator
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -44,10 +42,11 @@ def login_required(view):
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
+        # Unpack Form Inputs
         email: str = request.form['email']
         username: str = request.form['username']
         password: str = request.form['password']
-        db = get_db()
+        db = get_db() # Firebase client
         error: str | None = None
 
         # Validate Form Input
@@ -75,7 +74,9 @@ def register():
         if error is None:
             # Query the Firestore for a user with the username
             users_ref: CollectionReference = db.collection('users')
-            records: StreamGenerator[DocumentSnapshot] = users_ref.where(filter=FieldFilter("username", "==", username)).limit(1).stream()
+            records: StreamGenerator[DocumentSnapshot] = users_ref.where(
+                filter=FieldFilter("username", "==", username)
+            ).limit(1).stream()
 
             for record in records:
                 user_record: dict = record.to_dict()
@@ -87,15 +88,18 @@ def register():
         # Register the new user and create a record
         if error is None:
             try:
+                # New Firebase Authentication User
                 new_user: auth.UserRecord = auth.create_user(
-                    email=email,
-                    password=password,
-                    display_name=username
+                    email=email
+                    , password=password
+                    , display_name=username
                 )
 
+                # New Firestore User Record
                 new_user_record = {
-                    'username': username
-                    , 'email': email
+                    'uid': new_user.uid
+                    , 'username': new_user.display_name
+                    , 'email': new_user.email
                 }
 
                 db.collection('users').document().set(new_user_record)
@@ -112,30 +116,51 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        db = get_db()
-        error = None
-        user = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
-        ).fetchone()
+        id_token = request.form.get('idToken')
+        if id_token:
+            try:
+                decoded_token = auth.verify_id_token(id_token)
+                uid = decoded_token['uid']  # Verified UID
+                print(f"Verified User UID: {uid}")
+                # Use the UID for your application logic
+                # ...
+                return '<h1>FART!</h1>'
+            except Exception as e:
+                print(f"Error verifying token: {e}")
+                return "Invalid token", 401
+        else:
+            return "No token provided", 400
 
-        if user is None:
-            error = 'Incorrect username.'
-        elif not check_password_hash(user['password'], password):
-            error = 'Incorrect password.'
+        #username = request.form['email']
+        #password = request.form['password']
+        #db = get_db() # Firebase client
+        #error = None
+        #user = db.execute(
+        #    'SELECT * FROM user WHERE username = ?', (username,)
+        #).fetchone()
 
-        if error is None:
-            session.clear()
-            session['user_id'] = user['id']
-            return redirect(url_for('blog.posts'))
+        #if user is None:
+        #    error = 'Incorrect username.'
+        #elif not check_password_hash(user['password'], password):
+        #    error = 'Incorrect password.'
 
-        flash(error)
+        #if error is None:
+        #    session.clear()
+        #    session['user_id'] = user['id']
+        #    return redirect(url_for('blog.posts'))
+
+        #flash(error)
 
     return render_template('auth/login.html')
 
 
 @bp.route('/logout')
-def logout():
+def logout() -> Response:
+    """
+    Clear the current session cookie of all contents.
+
+    :return: Response
+    """
     session.clear()
+
     return redirect(url_for('blog.posts'))
