@@ -36,12 +36,17 @@
     window.sendAuth = function() {
         window.authenticate().then((idToken)=> {
             htmx.ajax('POST', '{{ url_for("auth.login")}}', {
-                values: { idToken: idToken },
-                target: '.content', // Specify the target element
-                swap: 'innerHTML'   // Specify the swap strategy
+                values: { idToken: idToken }
+                , target: '.content'
+                , swap: 'innerHTML'
             });
         }).catch((error)=>{
-            alert(error.message); // display error to user.
+            htmx.ajax('POST', '{{ url_for("auth.login")}}', {
+                values: { error: error }
+                , target: '.content'
+                , swap: 'innerHTML'
+            });
+            //alert(error.message); // display error to user.
         });
     }
 </script>

@@ -11,7 +11,8 @@
   <input type="password" name="password" id="password" required>
   <input type="button"
          value="Log In"
-         hx-on:click="sendAuth()">
+         hx-on:click="sendAuth()"
+         hx-disabled-elt="this">
   {% include 'firebase.js' %}
 </form>
 

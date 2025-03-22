@@ -1,9 +1,7 @@
 import functools
 
 from db import get_db
-from firebase_admin import (
-    auth, exceptions
-)
+from firebase_admin import auth
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, Response
 )
@@ -18,17 +16,30 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.before_app_request
 def load_logged_in_user():
-    user_id = session.get('user_id')
+    """
+    # TODO: Completed this!
 
-    if user_id is None:
+    :return:
+    """
+    uid: str | None = session.get('uid', None)
+    username: str | None = session.get('username', None)
+
+    if uid is None:
         g.user = None
     else:
-        g.user = get_db().execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone()
+        g.user = {
+            'uid': uid
+            , 'username': username
+        }
 
 
 def login_required(view):
+    """
+    # TODO: Complete this!
+
+    :param view:
+    :return:
+    """
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
@@ -41,6 +52,11 @@ def login_required(view):
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
+    """
+    # TODO: Complete this!
+
+    :return:
+    """
     if request.method == 'POST':
         # Unpack Form Inputs
         email: str = request.form['email']
@@ -115,41 +131,49 @@ def register():
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
+    """
+    # TODO: Completed this!
+
+    :return:
+    """
     if request.method == 'POST':
-        id_token = request.form.get('idToken')
-        if id_token:
+        id_token: str = request.form.get('idToken', '')
+        error: str =  request.form.get('error', '')
+
+        if id_token: # Firebase authentication token returned
             try:
                 decoded_token = auth.verify_id_token(id_token)
-                uid = decoded_token['uid']  # Verified UID
-                print(f"Verified User UID: {uid}")
-                # Use the UID for your application logic
-                # ...
-                return '<h1>FART!</h1>'
+                uid = decoded_token['uid']  # Verified UID?
+
+                # Check Firestore for user
+                # Query the Firestore for a user with the username
+                db = get_db() # Firebase client
+                users_ref: CollectionReference = db.collection('users')
+                records: StreamGenerator[DocumentSnapshot] = users_ref.where(
+                    filter=FieldFilter("uid", "==", uid)
+                ).limit(1).stream()
+
+                for record in records:
+                    user_record: dict = record.to_dict()
+                    username: str = user_record.get('username')
+
+                    # Clear and set session cookie
+                    # Return to blog post
+                    session.clear()
+                    session['uid'] = uid
+                    session['username'] = username
+
+                    return redirect(url_for('blog.posts'))
+                else:
+                    error = 'User not found in Firestore.'
             except Exception as e:
-                print(f"Error verifying token: {e}")
-                return "Invalid token", 401
-        else:
-            return "No token provided", 400
+                error = e
+        elif error: # Firebase authentication error caught
+            pass
+        else: # No token. What happun?
+            error = "No token provided."
 
-        #username = request.form['email']
-        #password = request.form['password']
-        #db = get_db() # Firebase client
-        #error = None
-        #user = db.execute(
-        #    'SELECT * FROM user WHERE username = ?', (username,)
-        #).fetchone()
-
-        #if user is None:
-        #    error = 'Incorrect username.'
-        #elif not check_password_hash(user['password'], password):
-        #    error = 'Incorrect password.'
-
-        #if error is None:
-        #    session.clear()
-        #    session['user_id'] = user['id']
-        #    return redirect(url_for('blog.posts'))
-
-        #flash(error)
+        flash(error)
 
     return render_template('auth/login.html')
 
