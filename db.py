@@ -14,9 +14,9 @@ def get_db():
     return g.db
 
 
-def close_db():
+def close_db(e=None):
     """
-    Closes the current instance of the Firestore client class.
+    Closes the Firestore client at the end of each request.
 
     :return: None.
     """

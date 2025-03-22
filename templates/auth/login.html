@@ -9,10 +9,10 @@
   <input name="email" id="email" required>
   <label for="password">Password</label>
   <input type="password" name="password" id="password" required>
-  <input type="button"
+  <input id="loginButton"
+         type="button"
          value="Log In"
-         hx-on:click="sendAuth()"
-         hx-disabled-elt="this">
+         hx-on:click="sendAuth()">
   {% include 'firebase.js' %}
 </form>
 

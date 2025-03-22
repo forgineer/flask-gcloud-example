@@ -4,7 +4,7 @@
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
     // https://firebase.google.com/docs/web/setup#available-libraries
 
-    // Your web app's Firebase configuration
+    // Firebase configuration (not secret)
     const firebaseConfig = {
         apiKey: "AIzaSyD2Ot0EikJNBtrDx9KANvNNS51M1C8MjAI",
         authDomain: "forgineer.firebaseapp.com",
@@ -18,6 +18,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // Firebase Authentication
     window.authenticate = function() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -33,20 +34,24 @@
             });
     };
 
+    // Send Authentication to Backend
     window.sendAuth = function() {
+        const loginButton = document.getElementById('loginButton');
+        loginButton.disabled = true;
+        loginButton.value = 'Authenticating...';
+
         window.authenticate().then((idToken)=> {
             htmx.ajax('POST', '{{ url_for("auth.login")}}', {
                 values: { idToken: idToken }
                 , target: '.content'
                 , swap: 'innerHTML'
             });
-        }).catch((error)=>{
+        }).catch((error)=> {
             htmx.ajax('POST', '{{ url_for("auth.login")}}', {
                 values: { error: error }
                 , target: '.content'
                 , swap: 'innerHTML'
             });
-            //alert(error.message); // display error to user.
         });
     }
 </script>

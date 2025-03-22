@@ -26,4 +26,5 @@ handlers:
 - url: /.*
   script: auto
 
+# Define app entry point
 entrypoint: gunicorn -b :$PORT main:app

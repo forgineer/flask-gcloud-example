@@ -1,15 +1,11 @@
+import db
 import functools
 
-from db import get_db
 from firebase_admin import auth
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, Response
 )
-from google.cloud.firestore import (
-    CollectionReference, DocumentSnapshot, FieldFilter
-)
-from google.cloud.firestore_v1.stream_generator import StreamGenerator
-
+from google.cloud.firestore import FieldFilter
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -21,8 +17,8 @@ def load_logged_in_user():
 
     :return:
     """
-    uid: str | None = session.get('uid', None)
-    username: str | None = session.get('username', None)
+    uid = session.get('uid', None)
+    username = session.get('username', None)
 
     if uid is None:
         g.user = None
@@ -59,11 +55,11 @@ def register():
     """
     if request.method == 'POST':
         # Unpack Form Inputs
-        email: str = request.form['email']
-        username: str = request.form['username']
-        password: str = request.form['password']
-        db = get_db() # Firebase client
-        error: str | None = None
+        email = request.form['email']
+        username = request.form['username']
+        password = request.form['password']
+        firestoredb = db.get_db() # Firebase client
+        error = None
 
         # Validate Form Input
         if not email:
@@ -74,7 +70,7 @@ def register():
             error = 'Password is required.'
 
         # Verify if the user (email) already exists
-        user: auth.UserRecord | None = None
+        user = None
 
         if error is None:
             try:
@@ -89,14 +85,14 @@ def register():
         # Verify if the username is already being used
         if error is None:
             # Query the Firestore for a user with the username
-            users_ref: CollectionReference = db.collection('users')
-            records: StreamGenerator[DocumentSnapshot] = users_ref.where(
+            users_ref = firestoredb.collection('users')
+            records = users_ref.where(
                 filter=FieldFilter("username", "==", username)
             ).limit(1).stream()
 
             for record in records:
-                user_record: dict = record.to_dict()
-                record_username: str | None = user_record.get('username', None)
+                user_record = record.to_dict()
+                record_username = user_record.get('username', None)
 
                 if record_username == username:
                     error = f'User {username} is already registered.'
@@ -105,7 +101,7 @@ def register():
         if error is None:
             try:
                 # New Firebase Authentication User
-                new_user: auth.UserRecord = auth.create_user(
+                new_user = auth.create_user(
                     email=email
                     , password=password
                     , display_name=username
@@ -118,7 +114,7 @@ def register():
                     , 'email': new_user.email
                 }
 
-                db.collection('users').document().set(new_user_record)
+                firestoredb.collection('users').document().set(new_user_record)
 
                 return redirect(url_for("blog.posts"))
             except Exception as e:
@@ -137,8 +133,8 @@ def login():
     :return:
     """
     if request.method == 'POST':
-        id_token: str = request.form.get('idToken', '')
-        error: str =  request.form.get('error', '')
+        id_token = request.form.get('idToken', '')
+        error =  request.form.get('error', '')
 
         if id_token: # Firebase authentication token returned
             try:
@@ -147,15 +143,15 @@ def login():
 
                 # Check Firestore for user
                 # Query the Firestore for a user with the username
-                db = get_db() # Firebase client
-                users_ref: CollectionReference = db.collection('users')
-                records: StreamGenerator[DocumentSnapshot] = users_ref.where(
+                firestoredb = db.get_db() # Firebase client
+                users_ref = firestoredb.collection('users')
+                records = users_ref.where(
                     filter=FieldFilter("uid", "==", uid)
                 ).limit(1).stream()
 
                 for record in records:
-                    user_record: dict = record.to_dict()
-                    username: str = user_record.get('username')
+                    user_record = record.to_dict()
+                    username = user_record.get('username')
 
                     # Clear and set session cookie
                     # Return to blog post
