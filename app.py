@@ -5,9 +5,15 @@ import os
 from firebase_admin import credentials
 from flask import Flask
 from google.cloud import secretmanager
+from google.api_core.exceptions import NotFound
 
 
-def create_app(test_config=None):
+def create_app():
+    """
+    Standard app factory. Stands up the application.
+
+    :return: A Flask app instance
+    """
     # Initialize the Firebase admin
     cred = credentials.ApplicationDefault()
     firebase_admin.initialize_app(cred)
@@ -22,7 +28,7 @@ def create_app(test_config=None):
     try:
         secrets_client = secretmanager.SecretManagerServiceClient()
         secret_name = 'APP_SECRET_KEY'
-        secret_version = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+        secret_version = f'projects/{project_id}/secrets/{secret_name}/versions/latest'
 
         secret_data = secrets_client.access_secret_version(name=secret_version)
         APP_SECRET_KEY = secret_data.payload.data.decode('UTF-8')
@@ -31,7 +37,9 @@ def create_app(test_config=None):
         app.config.from_mapping(
             SECRET_KEY=APP_SECRET_KEY
         )
-    except Exception as e:
+    except NotFound:
+        raise Exception('Secret APP_SECRET_KEY not found.')
+    except Exception as e: # All other exceptions
         raise Exception(e)
 
     # Import App blueprints
