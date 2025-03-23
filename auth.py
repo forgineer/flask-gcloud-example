@@ -5,7 +5,8 @@ from firebase_admin import auth
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, Response
 )
-from google.cloud.firestore import FieldFilter
+from google.cloud import firestore
+
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -13,9 +14,9 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 @bp.before_app_request
 def load_logged_in_user():
     """
-    # TODO: Completed this!
+    Capture the logged-in user from the session cookie before each request.
 
-    :return:
+    :return: None. The logged-in user is loaded into the g.user global.
     """
     uid = session.get('uid', None)
     username = session.get('username', None)
@@ -31,10 +32,10 @@ def load_logged_in_user():
 
 def login_required(view):
     """
-    # TODO: Complete this!
+    A decorator for wrapping requests that require login access.
 
-    :param view:
-    :return:
+    :param view: The request or view being wrapped.
+    :return: The wrapped view if the user is logged in. Else, the login view.
     """
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -49,9 +50,9 @@ def login_required(view):
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     """
-    # TODO: Complete this!
+    Registration of new users into Firebase and Firestore database.
 
-    :return:
+    :return: If registration completes, back to the Blog Posts screen. Else, the login view.
     """
     if request.method == 'POST':
         # Unpack Form Inputs
@@ -74,11 +75,11 @@ def register():
 
         if error is None:
             try:
-                # Is the user registered?
+                # Is the user's email already registered?
                 user = auth.get_user_by_email(email)
                 error = f"Email {email} is already registered."
             except auth.UserNotFoundError:
-                pass
+                pass # In this scenario, unregistered users are acceptable.
             except Exception as e:
                 error = e
 
@@ -87,7 +88,7 @@ def register():
             # Query the Firestore for a user with the username
             users_ref = firestoredb.collection('users')
             records = users_ref.where(
-                filter=FieldFilter("username", "==", username)
+                filter=firestore.FieldFilter("username", "==", username)
             ).limit(1).stream()
 
             for record in records:
@@ -112,11 +113,14 @@ def register():
                     'uid': new_user.uid
                     , 'username': new_user.display_name
                     , 'email': new_user.email
+                    , 'created': firestore.SERVER_TIMESTAMP
                 }
 
                 firestoredb.collection('users').document().set(new_user_record)
 
                 return redirect(url_for("blog.posts"))
+            except auth.EmailAlreadyExistsError:
+                error = f'Email {email} is already registered.'
             except Exception as e:
                 error = e
 
@@ -128,9 +132,9 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     """
-    # TODO: Completed this!
+    User login. Authenticates the user against Firebase and Firestore database as a valid user.
 
-    :return:
+    :return: If login completes, back to the Blog Posts screen as user. Else, the login view.
     """
     if request.method == 'POST':
         id_token = request.form.get('idToken', '')
@@ -146,7 +150,7 @@ def login():
                 firestoredb = db.get_db() # Firebase client
                 users_ref = firestoredb.collection('users')
                 records = users_ref.where(
-                    filter=FieldFilter("uid", "==", uid)
+                    filter=firestore.FieldFilter("uid", "==", uid)
                 ).limit(1).stream()
 
                 for record in records:
@@ -160,13 +164,14 @@ def login():
                     session['username'] = username
 
                     return redirect(url_for('blog.posts'))
-                else:
-                    error = 'User not found in Firestore.'
+
+                # No records, no user :(
+                error = 'User not found in Firestore.'
             except Exception as e:
                 error = e
         elif error: # Firebase authentication error caught
-            pass
-        else: # No token. What happun?
+            pass # Allow this error to passthrough back to the login view.
+        else: # No token. What happun? Edge case.
             error = "No token provided."
 
         flash(error)

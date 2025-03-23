@@ -1,22 +1,21 @@
 import db
 
+from auth import login_required
 from datetime import datetime
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
 
-from auth import login_required
-
-
 
 bp = Blueprint('blog', __name__)
 
 
-def get_recent_posts(limit: int):
+def get_blog_posts(limit=100):
     """
-    Get ALL blog posts from the database. Created for simplification.
+    Get blog posts from the database. Created for simplification.
 
+    :param limit:
     :return: A list object with all blog posts data.
     """
     firestoredb = db.get_db()
@@ -26,13 +25,13 @@ def get_recent_posts(limit: int):
 
 @bp.route('/')
 def index():
-    posts = get_recent_posts(limit=25)
+    posts = get_blog_posts()
     return render_template('blog/index.html', posts=posts)
 
 
 @bp.route('/posts')
 def posts():
-    posts = get_recent_posts(limit=25)
+    posts = get_blog_posts()
     return render_template('blog/posts.html', posts=posts)
 
 

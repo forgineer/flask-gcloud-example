@@ -54,7 +54,7 @@ def create_app():
 
     # Define actions after App context ends
     @app.teardown_appcontext
-    def teardown():
+    def teardown(exception):
         db.close_db()
 
     return app
