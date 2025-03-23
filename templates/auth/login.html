@@ -9,10 +9,13 @@
   <input name="email" id="email" required>
   <label for="password">Password</label>
   <input type="password" name="password" id="password" required>
-  <input id="loginButton"
-         type="button"
-         value="Log In"
-         hx-on:click="sendAuth()">
+  <button id="loginButton"
+          type="button"
+          value="Log In"
+          hx-on:click="sendAuth()">
+    Log In
+    <img id="spinner" class="htmx-indicator" height="10px" src="{{ url_for('static', filename='bars.svg') }}"/>
+  </button>
   {% include 'firebase.js' %}
 </form>
 

@@ -24,10 +24,10 @@ nav ul li a, nav ul li span, header .action { display: block; padding: 0.5rem; }
 .content textarea { min-height: 12em; resize: vertical; }
 input.danger { color: #cc2f2e; }
 input[type=submit] { align-self: start; min-width: 10em; }
-input[type=button] { align-self: start; min-width: 10em; }
-button { align-self: start; min-width: 10em; }
-input:disabled { opacity: 0.8 }
 
+/* Custom Styles from the Original Blog Example */
+button { align-self: start; min-width: 10em; }
+button: disabled { opacity: 0.8 }
 .htmx-indicator{ display:none; }
 .htmx-request .htmx-indicator { display:inline; }
 .htmx-request.htmx-indicator { display:inline; }

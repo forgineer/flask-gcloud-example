@@ -38,7 +38,6 @@
     window.sendAuth = function() {
         const loginButton = document.getElementById('loginButton');
         loginButton.disabled = true;
-        loginButton.value = 'Authenticating...';
 
         window.authenticate().then((idToken)=> {
             htmx.ajax('POST', '{{ url_for("auth.login")}}', {
