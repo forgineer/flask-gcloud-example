@@ -60,4 +60,5 @@ def create_app():
     return app
 
 
+# Entry point for App Engine
 blog = create_app()

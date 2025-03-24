@@ -27,4 +27,4 @@ handlers:
   script: auto
 
 # Define app entry point
-entrypoint: gunicorn -b :$PORT app:blog
+entrypoint: gunicorn -b :$PORT dummy:app
