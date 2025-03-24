@@ -4,29 +4,34 @@
 {% for message in get_flashed_messages() %}
 <div class="flash">{{ message }}</div>
 {% endfor %}
-<form>
+<form id="updatePost"
+      hx-post="{{ url_for('blog.update', id=post['id']) }}"
+      hx-target=".content"
+      hx-swap="innerHTML"
+      hx-disabled-elt="find #updateButton"
+      hx-indicator="#update_spinner">
   <label for="title">Title</label>
   <input name="title" id="title"
          value="{{ request.form['title'] or post['title'] }}" required>
   <label for="body">Body</label>
   <textarea name="body" id="body">{{ request.form['body'] or post['body'] }}</textarea>
-  <input type="submit"
-         value="Save"
-         hx-post="{{ url_for('blog.update', id=post['id']) }}"
-         hx-trigger="click"
-         hx-target=".content"
-         hx-swap="innerHTML">
+  <button id="updateButton" type="submit" form="updatePost" value="Save">
+    Save
+    <img id="update_spinner" class="htmx-indicator" height="10px" src="{{ url_for('static', filename='bars.svg') }}"/>
+  </button>
 </form>
 <hr>
-<form>
-  <input class="danger"
-         type="submit"
-         value="Delete"
-         hx-post="{{ url_for('blog.delete', id=post['id']) }}"
-         hx-trigger="click"
-         hx-target=".content"
-         hx-swap="innerHTML"
-         hx-confirm='Are you sure?'>
+<form id="deletePost"
+      hx-post="{{ url_for('blog.delete', id=post['id']) }}"
+      hx-target=".content"
+      hx-swap="innerHTML"
+      hx-confirm='Are you sure?'
+      hx-disabled-elt="find #deleteButton"
+      hx-indicator="#delete_spinner">
+  <button id="deleteButton" type="submit" class="danger" form="deletePost" value="Delete">
+    Delete
+    <img id="delete_spinner" class="htmx-indicator" height="10px" src="{{ url_for('static', filename='bars.svg') }}"/>
+  </button>
 </form>
 
 {# Out of Band (OOB) Swap for page title #}

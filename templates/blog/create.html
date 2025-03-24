@@ -4,17 +4,20 @@
 {% for message in get_flashed_messages() %}
 <div class="flash">{{ message }}</div>
 {% endfor %}
-<form>
+<form id="createPost"
+      hx-post="{{ url_for('blog.create') }} "
+      hx-target=".content"
+      hx-swap="innerHTML"
+      hx-disabled-elt="find button"
+      hx-indicator="#spinner">
   <label for="title">Title</label>
   <input name="title" id="title" value="{{ request.form['title'] }}" required>
   <label for="body">Body</label>
   <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
-  <input type="submit"
-         value="Save"
-         hx-post="{{ url_for('blog.create') }} "
-         hx-trigger="click"
-         hx-target=".content"
-         hx-swap="innerHTML">
+  <button type="submit" form="createPost" value="Save">
+    Save
+    <img id="spinner" class="htmx-indicator" height="10px" src="{{ url_for('static', filename='bars.svg') }}"/>
+  </button>
 </form>
 
 {# Out of Band (OOB) Swap for page title #}
