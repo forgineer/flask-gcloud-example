@@ -1,0 +1,24 @@
+<header>
+  <h1>New Post</h1>
+</header>
+{% for message in get_flashed_messages() %}
+<div class="flash">{{ message }}</div>
+{% endfor %}
+<form id="createPost"
+      hx-post="{{ url_for('blog.create') }} "
+      hx-target=".content"
+      hx-swap="innerHTML"
+      hx-disabled-elt="find button"
+      hx-indicator="#spinner">
+  <label for="title">Title</label>
+  <input name="title" id="title" value="{{ request.form['title'] }}" required>
+  <label for="body">Body</label>
+  <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
+  <button type="submit" form="createPost" value="Save">
+    Save
+    <img id="spinner" class="htmx-indicator" height="10px" src="{{ url_for('static', filename='bars.svg') }}"/>
+  </button>
+</form>
+
+{# Out of Band (OOB) Swap for page title #}
+<title class="blog_title" hx-swap-oob="outerHTML:.blog_title">New Post - HTMX Blog</title>

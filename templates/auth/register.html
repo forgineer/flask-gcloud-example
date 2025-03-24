@@ -1,0 +1,26 @@
+<header>
+    <h1>Register</h1>
+</header>
+{% for message in get_flashed_messages() %}
+<div class="flash">{{ message }}</div>
+{% endfor %}
+<form id="registerUser"
+      hx-post="{{ url_for('auth.register') }}"
+      hx-target=".content"
+      hx-swap="innerHTML"
+      hx-disabled-elt="find button"
+      hx-indicator="#spinner">
+    <label for="email">Email</label>
+    <input name="email" id="email" required>
+    <label for="username">Username</label>
+    <input name="username" id="username" required>
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+    <button type="submit" form="registerUser" value="Register">
+        Register
+        <img id="spinner" class="htmx-indicator" height="10px" src="{{ url_for('static', filename='bars.svg') }}"/>
+    </button>
+</form>
+
+{# Out of Band (OOB) Swap for page title #}
+<title class="blog_title" hx-swap-oob="outerHTML:.blog_title">Register - HTMX Blog</title>
