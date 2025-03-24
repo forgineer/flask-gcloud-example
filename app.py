@@ -58,3 +58,6 @@ def create_app():
         db.close_db()
 
     return app
+
+
+blog = create_app()
