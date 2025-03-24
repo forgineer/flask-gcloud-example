@@ -27,7 +27,6 @@ input[type=submit] { align-self: start; min-width: 10em; }
 
 /* Custom Styles from the Original Blog Example */
 button { align-self: start; min-width: 10em; }
-button: disabled { opacity: 0.8 }
 .htmx-indicator{ display:none; }
 .htmx-request .htmx-indicator { display:inline; }
 .htmx-request.htmx-indicator { display:inline; }

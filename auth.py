@@ -114,9 +114,10 @@ def register():
                     , 'username': new_user.display_name
                     , 'email': new_user.email
                     , 'created': firestore.SERVER_TIMESTAMP
+                    , 'updated': firestore.SERVER_TIMESTAMP
                 }
 
-                firestoredb.collection('users').document().set(new_user_record)
+                firestoredb.collection('users').add(new_user_record)
 
                 return redirect(url_for("blog.posts"))
             except auth.EmailAlreadyExistsError:
