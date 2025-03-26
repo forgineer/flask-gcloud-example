@@ -22,3 +22,6 @@ venv/
 
 # Ignored by the build system
 /setup.cfg
+
+# Admin Scripts
+admin_scripts/
