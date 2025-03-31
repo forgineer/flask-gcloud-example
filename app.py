@@ -36,6 +36,9 @@ def create_app():
         # Set App config
         app.config.from_mapping(
             SECRET_KEY=APP_SECRET_KEY
+            #, SESSION_COOKIE_SECURE=True
+            #, SESSION_COOKIE_HTTPONLY=True
+            #, SESSION_COOKIE_SAMESITE='Lax'
         )
     except NotFound:
         raise Exception('Secret APP_SECRET_KEY not found.')
