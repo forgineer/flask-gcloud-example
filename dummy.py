@@ -6,6 +6,7 @@ from flask import Flask
 def create_app():
     """
     Standard app factory. Stands up the application.
+    This is a dummy application to deploy to App Engine instead of a real one.
 
     :return: A Flask app instance
     """
