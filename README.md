@@ -84,6 +84,20 @@ This application is configured for deployment to the Google App Engine standard 
     
     Follow the prompts to select a region and confirm the deployment. Once deployed, the command will output the URL to your live application.
 
+### A Note on Firebase API Keys
+
+You might notice that the Firebase configuration in `templates/firebase.js`, including the `apiKey`, is publicly visible. This is by design and is considered a safe practice.
+
+*   **Identification, Not Authorization:** The `apiKey` is used to identify your Firebase project on Google's servers, not to grant access to your data. It is a public identifier, not a secret credential.
+*   **Security is Handled by Rules:** The security of your application's data is enforced by Firebase Security Rules for services like Firestore. These rules, defined on the backend, control who can read, write, and modify data.
+
+For more information, you can refer to the following resources:
+
+*   **Stack Overflow:** [Is it safe to expose Firebase API key to the public?](https://stackoverflow.com/questions/37482366/is-it-safe-to-expose-firebase-api-key-to-the-public)
+*   **Firebase Documentation:** [Understand Firebase projects](https://firebase.google.com/docs/projects/learn-more#api-keys)
+
+**Important:** If you are using this project as a template, you must replace the Firebase configuration in `templates/firebase.js` with the keys from your own Firebase project.
+
 ## Dummy Application
 
 The `dummy.py` module contains a simple Flask application that can be deployed to Google App Engine in place of the main blog application. This is a security measure to avoid exposing the fully functional blog application, which could be vulnerable to malicious attacks such as brute-force creation of blog posts.
